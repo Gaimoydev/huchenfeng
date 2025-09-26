@@ -51,7 +51,7 @@
 	}
 
 	if (target === 'macos') {
-		ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15";
+		ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 26_00_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15";
 		platform = "MacIntel";
 		touchPoints = 0;
 		coarse = false;
@@ -59,7 +59,7 @@
 		isMobile = false;
 		pwaStandalone = false;
 	} else if (target === 'ios') {
-		ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+		ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
 		platform = "iPhone";
 		touchPoints = 5;
 		coarse = true;
@@ -67,7 +67,7 @@
 		isMobile = true;
 		pwaStandalone = null;
 	} else if (target === 'ipados') {
-		ua = "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+		ua = "Mozilla/5.0 (iPad; CPU OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
 		platform = "MacIntel";
 		touchPoints = 5;
 		coarse = false;
@@ -331,6 +331,44 @@
 		get: () => appleSignalSnapshot,
 		configurable: true
 	});
+
+    const fakeUAData = {
+        mobile: isMobile,
+        platform: (target === 'macos' ? 'macOS' : (target === 'ios' ? 'iOS' : 'iPadOS')),
+        brands: [
+            { brand: "Chromium", version: "117" },
+            { brand: "Safari", version: "17" },
+            { brand: "Not=A?Brand", version: "99" }
+        ],
+        getHighEntropyValues: async (hints) => {
+            const result = {};
+            for (const hint of hints) {
+                switch (hint) {
+                    case 'platform':
+                        result.platform = fakeUAData.platform;
+                        break;
+                    case 'platformVersion':
+                        result.platformVersion = (target === 'macos' ? "26.0.0" : "26.0.0");
+                        break;
+                    case 'architecture':
+                        result.architecture = "arm";
+                        break;
+                    case 'model':
+                        result.model = (target === 'ios' ? "iPhone26" : (target === 'ipados' ? "iPad26" : ""));
+                        break;
+                    case 'uaFullVersion':
+                        result.uaFullVersion = "117.0.0.0";
+                        break;
+                }
+            }
+            return result;
+        }
+    };
+
+    Object.defineProperty(navigator, "userAgentData", {
+        get: () => fakeUAData,
+        configurable: true
+    });
 
 	console.log("Fake Apple: ", target);
 
